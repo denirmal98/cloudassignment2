@@ -1,7 +1,7 @@
 # Installing Apache Spark on macOS using Homebrew
 
 ## Docker Image
-You can access the Docker image for this project [here]().
+You can access the Docker image for this project [here](https://hub.docker.com/repository/docker/nd439/cloudassignment2/general).
 
 ## Install Homebrew
 If Homebrew is not installed on your machine, you can install it by executing the following command in your terminal:
