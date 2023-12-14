@@ -1,13 +1,10 @@
-FROM centos:7
+FROM ubuntu:latest
 
-RUN yum -y update && yum -y install python3 python3-dev python3-pip python3-virtualenv \
-	java-1.8.0-openjdk wget
+RUN apt -y update && apt -y install python3 python3-dev python3-pip python3-virtualenv openjdk-8-jdk wget
+RUN (echo 'export JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64' >> ~/.bashrc && echo 'export PATH=$PATH:$JAVA_HOME/bin' >> ~/.bashrc)
 
 COPY requirements.txt requirements.txt
 COPY prediction.py prediction.py
-
-RUN python -V
-RUN python3 -V
 
 ENV PYSPARK_DRIVER_PYTHON python3
 ENV PYSPARK_PYTHON python3
@@ -15,19 +12,17 @@ ENV PYSPARK_PYTHON python3
 RUN pip3 install --upgrade pip
 RUN pip3 install -r requirements.txt
 
-RUN cd /opt && wget https://apache.osuosl.org/spark/spark-3.3.2/spark-3.3.2-bin-hadoop3.tgz && tar -xzf spark-3.3.2-bin-hadoop3.tgz && rm spark-3.3.2-bin-hadoop3.tgz
+RUN wget https://downloads.apache.org/hadoop/common/hadoop-3.3.6/hadoop-3.3.6.tar.gz && wget https://downloads.apache.org/spark/spark-3.5.0/spark-3.5.0-bin-hadoop3.tgz  
+RUN tar -xzvf hadoop-3.3.6.tar.gz && tar -xzvf spark-3.5.0-bin-hadoop3.tgz
+
+RUN mv spark-3.5.0-bin-hadoop3 /opt/spark
+RUN (echo 'export SPARK_HOME=/opt/spark' >> ~/.bashrc && echo 'export PATH=$PATH:$SPARK_HOME/bin' >> ~/.bashrc && echo 'export HADOOP_HOME=/opt/hadoop' >> ~/.bashrc && echo 'export PATH=$PATH:$HADOOP_HOME/bin' >> ~/.bashrc)
+
+RUN mv hadoop-3.3.6 /opt/hadoop
+RUN (echo 'export HADOOP_HOME=/opt/hadoop' >> ~/.bashrc && echo 'export PATH=$PATH:$HADOOP_HOME/bin' >> ~/.bashrc)
 
 
-RUN ln -s /opt/spark-3.3.2-bin-hadoop3 /opt/spark
-RUN (echo 'export SPARK_HOME=/opt/spark' >> ~/.bashrc && echo 'export PATH=$SPARK_HOME/bin:$PATH' >> ~/.bashrc && echo 'export PYSPARK_PYTHON=python3' >> ~/.bashrc)
-
-
-
-RUN rm /bin/sh && ln -s /bin/bash /bin/sh
 
 RUN /bin/bash -c "source ~/.bashrc"
-RUN /bin/sh -c "source ~/.bashrc"
 
-ENTRYPOINT ["/opt/spark/bin/spark-submit", "--packages", "org.apache.hadoop:hadoop-aws:3.2.4", "hp544_prediction.py"]
-
-
+ENTRYPOINT ["/opt/spark/bin/spark-submit", "--packages", "org.apache.hadoop:hadoop-aws:3.2.4", "prediction.py"]
